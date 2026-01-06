@@ -1,0 +1,121 @@
+﻿<Window x:Class="Client.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:Converters="clr-namespace:Client.Converters"
+        Title="Task Manager"
+        Height="Auto"
+        MinHeight="575"
+        MaxHeight="1000"
+        Width="800">
+
+    <Window.Resources>
+        <!-- Converter to change lock status to image -->
+        <!-- TODO : The idea was to display a column in the grid with a lock icon for locked tasks.
+                    There wasn't enough time to implement it and the column is currently commented out. -->
+        <Converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+
+        <Style TargetType="Button">
+            <Setter Property="Padding" Value="10,5" />
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <!-- Split layout: left side for DataGrid, right side for task details -->
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="3*" />
+            <ColumnDefinition Width="2*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- Connect to Server button -->
+        <Button Grid.Row="0" Grid.ColumnSpan="2"
+                HorizontalAlignment="Center" Margin="20,20,20,10"
+                Content="Connect to Server" Command="{Binding ConnectToServerCommand}"
+                IsEnabled="{Binding IsConnectToServerButtonEnabled}" />
+
+        <!-- Task Grid -->
+        <StackPanel Grid.Row="1"
+                    Grid.Column="0"
+                    Orientation="Vertical">
+
+            <DataGrid Name="TasksGrid" AutoGenerateColumns="False"
+                      ItemsSource="{Binding TaskDtos}"
+                      SelectedItem="{Binding SelectedTaskDto, Mode=TwoWay}"
+                      Margin="10" IsReadOnly="True" SelectionMode="Single"
+                      CanUserAddRows="False" CanUserDeleteRows="False">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Title" Binding="{Binding Title}" Width="*" />
+                    <DataGridTextColumn Header="Priority" Binding="{Binding Priority}" Width="1.5*" />
+                    <DataGridTextColumn Header="Due Date" Binding="{Binding DueDate}" Width="1.5*" />
+                    <DataGridTextColumn Header="Is Completed" Binding="{Binding IsCompleted}" Width="1*" />
+                    <!--<DataGridTemplateColumn Header="Locked">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Image Source="pack://application:,,,/Resources/Images/lock_icon.png"
+                                       Visibility="{Binding IsLocked, Converter={StaticResource BoolToVisibilityConverter}}"
+                                       Width="20"
+                                       Height="20" />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>-->
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <!-- Paging Controls -->
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="10,0">
+                <Button Content="Previous" Command="{Binding PreviousPageCommand}" Margin="0,0,10,0" />
+                <!--<TextBox Text="{Binding PageCurrent}" Width="50" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Margin="0,0,10,0"/>-->
+                <Label Content="{Binding PageCurrent, Mode=OneWay}" Width="40" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Margin="0,0,10,0"/>
+                <Button Content="Next" Command="{Binding NextPageCommand}" Margin="0,0,10,0" />
+            </StackPanel>
+        </StackPanel>
+
+        <!-- Task Details Section -->
+        <StackPanel Grid.Row="1" Grid.Column="1" Margin="10">
+            <TextBlock Text="Task Details" FontWeight="Bold" FontSize="14" Margin="0,0,0,10"/>
+
+            <!-- Labels and Input Fields -->
+            <TextBlock Text="Title" />
+            <!-- TODO : I wanted to test binding all these fields to the members of a single property, "SelectedTaskModel".
+                        However, I wasn't sure exactly on what I'd need to call OnPropertyChanged and how to make the UI
+                        update automatically correctly. Using separate properties for each value was used as a safe fallback.
+                        To avoid having many commented out lines, I'm only including how it should have look for the Title
+                        field, but all other fields would have "SelectedTaskMovel." if it had worked. -->
+            <!--<TextBox Text="{Binding SelectedTaskModel.Title}" IsEnabled="{Binding IsEditingFields}" Margin="0,0,0,10" />-->
+            <TextBox Text="{Binding Title}" IsEnabled="{Binding IsEditingFields}" Margin="0,0,0,10" />
+
+            <TextBlock Text="Description" />
+            <TextBox Text="{Binding Description}" IsEnabled="{Binding IsEditingFields}" Height="60" Margin="0,0,0,10" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" />
+
+            <TextBlock Text="Due Date" />
+            <DatePicker SelectedDate="{Binding DueDate}" IsEnabled="{Binding IsEditingFields}" Margin="0,0,0,10" />
+
+            <TextBlock Text="Priority" />
+            <ComboBox ItemsSource="{Binding Priorities}" SelectedItem="{Binding Priority}" IsEnabled="{Binding IsEditingFields}" Margin="0,0,0,10"/>
+
+            <TextBlock Text="Is Completed" />
+            <CheckBox IsChecked="{Binding IsCompleted}" IsEnabled="{Binding IsEditingFields}" Margin="0,0,0,10" />
+
+            <TextBlock Text="Creation Date" />
+            <TextBox Text="{Binding CreationDate}" IsEnabled="False" Margin="0,0,0,10" />
+
+            <TextBlock Text="Last Update Date" />
+            <TextBox Text="{Binding LastUpdateDate}" IsEnabled="False" Margin="0,0,0,10" />
+
+            <!-- Buttons -->
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,20,0,0">
+                <Button Content="Start Adding" Command="{Binding AddCommand}" Margin="0,0,10,0" />
+                <Button Content="Start Editing" Command="{Binding EditCommand}" Margin="0,0,10,0" />
+                <Button Content="Delete" Command="{Binding DeleteCommand}" Margin="0,0,10,0" />
+            </StackPanel>
+            
+            <StackPanel Orientation="Horizontal" Margin="0,20,0,0">
+                <Button Content="Save" Command="{Binding SaveCommand}" IsEnabled="{Binding IsSaveEnabled}" Margin="0,0,10,0" />
+                <Button Content="Cancel" Command="{Binding CancelCommand}" IsEnabled="{Binding IsCancelEnabled}" Margin="0,0,10,0" />
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</Window>
